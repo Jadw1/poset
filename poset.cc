@@ -1,3 +1,4 @@
+#include "poset.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -53,6 +54,18 @@ namespace {
     Edges& getReverseRelations(Node& node) {
         return node.second;
     }
+
+    std::optional<NodeIndex> getNodeIndex(Poset& poset, char const* value) {
+        auto& indexMap = getIndexMap(poset);
+
+        auto el = indexMap.find(value);
+        if(el == indexMap.end()) {
+            return std::nullopt;
+        }
+        return el->second;
+    }
+
+
 }
 
 
