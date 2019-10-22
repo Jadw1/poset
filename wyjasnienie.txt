@@ -1,0 +1,22 @@
+-Dodanie nowego posetu
+  *nadajemy mu index = PosetsIdexer
+  *PosetsIndexer++
+  *dodajemy poset do PosetsMap pod jego indexem
+
+-dodanie relacji pomiedzy 2 elementami (x -> y)
+  *sprawdzić czy x -> y już albo y -> x
+    -jeżeli tak to nie mozna dodac
+  *dodac to relacje
+  *dla każdego sąsiada y (np. z, czyli y -> z)
+   - jeżeli trzeba dodac (x -> z)
+   - powtorzyc dla y = z
+
+-usuniecie relacji pomiedzy x -> y
+  *dla kazdego sasiada x (np. z) trzeba sprawdzic czy z -> y
+    - jeżeli nie to mozna usunac relacje x -> y
+    - jeżeli tak to nie mozna usunac bo rozwali sie przechodniosc
+
+-usuniecie wierzchołka
+  * usunac wierzchołek z mapy
+  *przeiterowac sie po mapie i z każdego setu usunac relacje jezeli istenije
+
