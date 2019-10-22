@@ -1,3 +1,6 @@
+NIEAKTUALNE !!!!
+
+
 -Dodanie nowego posetu
   *nadajemy mu index = PosetsIdexer
   *PosetsIndexer++

@@ -9,13 +9,25 @@ namespace {
     using IndexMap = std::unordered_map<std::string, NodeIndex>;
     // set indexów do ktorych wskazuje relacja z danego wierzchołka
     using Edges = std::unordered_set<NodeIndex>;
-    // mapa przechowująca sety wierzchołków do których prowadzi relacja z NodeIndex
-    using PosetGraph = std::unordered_map<NodeIndex, Edges>;
+    // wierzchołek v w grafie < krawedzie takie ze v r e, krawedzie e r v>
+    using Node = std::pair<Edges, Edges>;
+    // mapa przechowująca Nodes
+    using PosetGraph = std::unordered_map<NodeIndex, Node>;
     // <nodesIndexer, mapa indexów, graf>
     using Poset = std::tuple<NodeIndex, IndexMap, PosetGraph>;
 
     std::unordered_map<unsigned long, Poset> PosetsMap;
     unsigned long PosetsIndexer = 0;
+
+    unsigned long createNewPoset() {
+        Poset poset;
+
+        unsigned long index = PosetsIndexer;
+        PosetsIndexer++;
+        PosetsMap.insert({index, poset});
+
+        return index;
+    }
 
     Poset* getPoset(unsigned long id) {
         auto el = PosetsMap.find(id);
@@ -34,14 +46,12 @@ namespace {
         return std::get<PosetGraph>(poset);
     }
 
-    unsigned long createNewPoset() {
-        Poset poset;
+    Edges& getRelations(Node& node) {
+        return node.first;
+    }
 
-        unsigned long index = PosetsIndexer;
-        PosetsIndexer++;
-        PosetsMap.insert({index, poset});
-
-        return index;
+    Edges& getReverseRelations(Node& node) {
+        return node.second;
     }
 }
 
