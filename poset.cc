@@ -2,7 +2,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <variant>
 
 namespace {
     using NodeIndex = unsigned long;
@@ -13,18 +12,18 @@ namespace {
     // mapa przechowująca sety wierzchołków do których prowadzi relacja z NodeIndex
     using PosetGraph = std::unordered_map<NodeIndex, Edges>;
     // <nodesIndexer, mapa indexów, graf>
-    using Poset = std::variant<NodeIndex, IndexMap, PosetGraph>;
+    using Poset = std::tuple<NodeIndex, IndexMap, PosetGraph>;
 
     std::unordered_map<unsigned long, Poset> PosetsMap;
     unsigned long PosetsIndexer = 0;
 
-    std::optional<Poset> getPoset(unsigned long id) {
+    Poset* getPoset(unsigned long id) {
         auto el = PosetsMap.find(id);
         if(el == PosetsMap.end()) {
-            return std::optional(std::nullopt);
+            return nullptr;
         }
 
-        return std::optional(el->second);
+        return &(el->second);
     }
 
     IndexMap& getIndexMap(Poset& poset) {
@@ -34,10 +33,17 @@ namespace {
     PosetGraph& getPosetGraph(Poset& poset) {
         return std::get<PosetGraph>(poset);
     }
+
+    unsigned long createNewPoset() {
+        Poset poset;
+
+        unsigned long index = PosetsIndexer;
+        PosetsIndexer++;
+        PosetsMap.insert({index, poset});
+
+        return index;
+    }
 }
-
-
-
 
 
 int main() {
