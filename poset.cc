@@ -43,6 +43,10 @@ namespace {
         return std::get<IndexMap>(poset);
     }
 
+    void setIndexMap(Poset& poset, IndexMap* iMap) {
+        std::get<IndexMap>(poset)=(*iMap);
+    }
+
     PosetGraph& getPosetGraph(Poset& poset) {
         return std::get<PosetGraph>(poset);
     }
@@ -63,6 +67,53 @@ namespace {
             return std::nullopt;
         }
         return el->second;
+    }
+
+    NodeIndex poset_new() {
+        Poset poset;
+
+        NodeIndex index = PosetsIndexer;
+        PosetsIndexer++;
+        PosetsMap.insert({index, poset});
+
+        return index;
+    }
+
+    void poset_delete(NodeIndex id){
+        auto el = PosetsMap.find(id);
+        if(el != PosetsMap.end()){
+            PosetsMap.erase(el);
+        }
+    }
+
+    size_t poset_size(NodeIndex id){
+        Poset* poset =  getPoset(id);
+        if(poset == nullptr) return 0;
+        IndexMap idxMap =getIndexMap(*poset);
+        return idxMap.size();
+    }
+
+
+    bool existenceInPoset(Poset poset,char const *value) {
+        IndexMap indexMap = getIndexMap(poset);
+        auto el = indexMap.find(value);
+        if(el != indexMap.end()){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    bool poset_insert(unsigned long id, char const *value){
+        Poset* poset = getPoset(id);
+        if(poset!= nullptr && existenceInPoset(*poset,value)){
+            IndexMap idxMap =getIndexMap(*poset);
+            idxMap.insert({value,id});
+            setIndexMap(*poset,&idxMap);
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
