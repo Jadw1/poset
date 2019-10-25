@@ -106,6 +106,33 @@ namespace {
         removeNodeFromGraph(getPosetGraph(poset), index.value());
         return true;
     }
+
+    bool checkRelation(Poset& poset, char const* value1, char const* value2) {
+        auto index1 = getNodeIndex(poset, value1);
+        auto index2 = getNodeIndex(poset, value2);
+
+        if(!index1.has_value() || !index2.has_value()) {
+            return false;
+        }
+
+        auto& graph = getPosetGraph(poset);
+        auto& node = getPosetNode(graph, index1.value());
+        auto& relations = getRelations(node);
+
+        auto rel = relations.find(index2.value());
+
+        return rel != relations.end();
+    }
+
+    void clearPoset(Poset& poset) {
+        auto& indexMap = getIndexMap(poset);
+        auto& graph = getPosetGraph(poset);
+
+        indexMap.clear();
+        graph.clear();
+
+        std::get<NodeIndex>(poset) = 0;
+    }
 }
 
 
@@ -117,6 +144,26 @@ bool poset_remove(unsigned long id, char const* value) {
     }
 
     return removeNode(*poset, value);
+}
+
+bool poset_test(unsigned long id, char const* value1, char const* value2) {
+    auto* poset = getPoset(id);
+
+    if(poset == nullptr) {
+        return false;
+    }
+
+    return checkRelation(*poset, value1, value2);
+}
+
+void poset_clear(unsigned long id) {
+    auto* poset = getPoset(id);
+
+    if(poset == nullptr) {
+        return;
+    }
+
+    clearPoset(*poset);
 }
 
 
