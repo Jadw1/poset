@@ -56,15 +56,10 @@ namespace {
         return el->second;
     }
 
-    bool existenceInPoset(Poset& poset,char const *value) {
+    bool isInPoset(Poset& poset, char const* value) {
         auto index = getNodeIndex(poset, value);
 
-        if(!index.has_value()) {
-            return false;
-        }
-        else {
-            return true;
-        }
+        return index.has_value();
     }
 
     std::optional<NodeIndex> removeNodeFromIndexMap(IndexMap& map, char const* value) {
@@ -154,7 +149,7 @@ void poset_delete(unsigned long id){
     }
 }
 
-size_t poset_size(NodeIndex id){
+size_t poset_size(unsigned long id){
     Poset* poset = getPoset(id);
     if(poset == nullptr) {
         return 0;
@@ -167,8 +162,8 @@ size_t poset_size(NodeIndex id){
 bool poset_insert(unsigned long id, char const *value){
     Poset* poset = getPoset(id);
 
-    if(poset != nullptr && existenceInPoset(*poset, value)) {
-        IndexMap& idxMap =getIndexMap(*poset);
+    if(poset != nullptr && !isInPoset(*poset, value)) {
+        IndexMap& idxMap = getIndexMap(*poset);
         idxMap.insert({value, id});
 
         return true;
@@ -210,30 +205,12 @@ void poset_clear(unsigned long id) {
 
 
 int main() {
-    //for tests
-    Poset po;
-    auto& indexMap = std::get<IndexMap>(po);
-    auto& graph = std::get<PosetGraph>(po);
+    auto id = poset_new();
+    bool a = poset_insert(id, "qqq");
+    bool b = poset_insert(id, "wrw");
+    bool c = poset_insert(id, "sdf");
+    poset_insert(id, "sdf");
+    std::cout << poset_size(id);
 
-    indexMap.insert({"a", 0});
-    indexMap.insert({"b", 1});
-    indexMap.insert({"c", 2});
-    indexMap.insert({"d", 3});
-
-    Node a({1, 2}, {});
-    Node b({2}, {0, 3});
-    Node c({}, {0, 1, 3});
-    Node d({1, 2}, {});
-
-    graph.insert({0, a});
-    graph.insert({1, b});
-    graph.insert({2, c});
-    graph.insert({3, d});
-
-    PosetsMap.insert({0, po});
-
-    bool res = poset_remove(0, "b");
-
-    auto* after = getPoset(0);
     return 0;
 }
