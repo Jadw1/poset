@@ -206,6 +206,20 @@ namespace {
         rel.erase(index2.value());
         revRel.erase(index1.value());
     }
+
+    void addNode(Poset& poset, const char* value) {
+        IndexMap& indexMap = getIndexMap(poset);
+        PosetGraph& graph = getPosetGraph(poset);
+
+        auto& index = std::get<NodeIndex>(poset);
+
+        Node node;
+
+        indexMap.insert({value, index});
+        graph.insert({index, node});
+
+        index++;
+    }
 }
 
 unsigned long poset_new() {
@@ -239,26 +253,17 @@ size_t poset_size(unsigned long id){
 bool poset_insert(unsigned long id, char const *value){
     auto poset = getPoset(id);
 
-    if(poset.has_value() && !isInPoset(poset.value(), value)) {
-        IndexMap& idxMap = getIndexMap(poset.value());
-        PosetGraph& graph = getPosetGraph(poset.value());
-
-
-        Poset& p = poset.value();
-        auto& index = std::get<NodeIndex>(p);
-        Edges rel;
-        Edges revRel;
-        Node node(rel, revRel);
-
-        idxMap.insert({value, index});
-        graph.insert({index, node});
-
-        index++;
-        return true;
-    }
-    else {
+    if(!poset.has_value() || value == nullptr) {
         return false;
     }
+
+    if(isInPoset(poset.value(), value)) {
+       return false;
+    }
+
+    addNode(poset.value(), value);
+
+    return true;
 }
 
 bool poset_remove(unsigned long id, char const* value) {
@@ -325,6 +330,8 @@ void poset_clear(unsigned long id) {
 
 int main() {
     auto id = poset_new();
+
+    bool nulltest = poset_insert(id, nullptr);
 
     bool a = poset_insert(id, "a");
     bool b = poset_insert(id, "b");
