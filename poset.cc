@@ -18,7 +18,7 @@ namespace {
 
     std::optional<std::reference_wrapper<Poset>> getPoset(unsigned long id) {
         auto el = PosetsMap.find(id);
-        if(el == PosetsMap.end()) {
+        if (el == PosetsMap.end()) {
             return std::nullopt;
         }
 
@@ -50,8 +50,12 @@ namespace {
     std::optional<NodeIndex> getNodeIndex(Poset& poset, char const* value) {
         auto& indexMap = getIndexMap(poset);
 
+        if(value == nullptr) {
+            return std::nullopt;
+        }
+
         auto el = indexMap.find(value);
-        if(el == indexMap.end()) {
+        if (el == indexMap.end()) {
             return std::nullopt;
         }
         return el->second;
@@ -65,7 +69,7 @@ namespace {
 
     std::optional<NodeIndex> removeNodeFromIndexMap(IndexMap& map, char const* value) {
         auto it = map.find(value);
-        if(it == map.end()) {
+        if (it == map.end()) {
             return std::nullopt;
         }
 
@@ -79,13 +83,13 @@ namespace {
         auto& rel = getRelations(node);
         auto& rev = getReverseRelations(node);
 
-        for(auto el: rel) {
+        for (auto el: rel) {
             auto& elRev = getReverseRelations(getPosetNode(graph, el));
 
             elRev.erase(index);
         }
 
-        for(auto el: rev) {
+        for (auto el: rev) {
             auto& elRel = getRelations(getPosetNode(graph, el));
 
             elRel.erase(index);
@@ -96,7 +100,7 @@ namespace {
 
     bool removeNode(Poset& poset, char const* value) {
         auto index = removeNodeFromIndexMap(getIndexMap(poset), value);
-        if(!index.has_value()) {
+        if (!index.has_value()) {
             return false;
         }
 
@@ -108,8 +112,11 @@ namespace {
         auto index1 = getNodeIndex(poset, value1);
         auto index2 = getNodeIndex(poset, value2);
 
-        if(!index1.has_value() || !index2.has_value()) {
+        if (!index1.has_value() || !index2.has_value()) {
             return false;
+        }
+        if (index1.value() == index2.value()) {
+            return true;
         }
 
         auto& graph = getPosetGraph(poset);
@@ -143,7 +150,7 @@ namespace {
         auto index1 = getNodeIndex(poset, value1);
         auto index2 = getNodeIndex(poset, value2);
 
-        if(!index1.has_value() || !index2.has_value()) {
+        if (!index1.has_value() || !index2.has_value()) {
             return false;
         }
 
@@ -152,10 +159,10 @@ namespace {
         auto& extendForwardSet = getRelations(getPosetNode(graph, index2.value()));
         auto& extendBackwardSet = getReverseRelations(getPosetNode(graph, index1.value()));
 
-        for(auto index : extendForwardSet) {
+        for (auto index : extendForwardSet) {
             addSingleRelation(graph, index1.value(), index);
         }
-        for(auto index : extendBackwardSet) {
+        for (auto index : extendBackwardSet) {
             addSingleRelation(graph, index, index2.value());
         }
 
@@ -168,20 +175,24 @@ namespace {
         auto index1 = getNodeIndex(poset, value1);
         auto index2 = getNodeIndex(poset, value2);
 
-        if(!index1.has_value() || !index2.has_value()) {
+        if (!index1.has_value() || !index2.has_value()) {
+            return false;
+        }
+
+        if (index1.value() == index2.value()) {
             return false;
         }
 
         auto& graph = getPosetGraph(poset);
         auto& relations = getRelations(getPosetNode(graph, index1.value()));
 
-        for(auto i : relations) {
-            if(i != index2.value()) {
+        for (auto i : relations) {
+            if (i != index2.value()) {
                 auto& set = getRelations(getPosetNode(graph, i));
 
                 auto it = set.find(index2.value());
 
-                if(it != set.end()) {
+                if (it != set.end()) {
                     return false;
                 }
             }
@@ -194,7 +205,7 @@ namespace {
         auto index1 = getNodeIndex(poset, value1);
         auto index2 = getNodeIndex(poset, value2);
 
-        if(!index1.has_value() || !index2.has_value()) {
+        if (!index1.has_value() || !index2.has_value()) {
             return;
         }
 
@@ -222,7 +233,7 @@ namespace {
     }
 }
 
-unsigned long poset_new() {
+unsigned long jnp1::poset_new() {
     Poset poset;
 
     unsigned long index = PosetsIndexer;
@@ -232,17 +243,17 @@ unsigned long poset_new() {
     return index;
 }
 
-void poset_delete(unsigned long id){
+void jnp1::poset_delete(unsigned long id) {
     auto el = PosetsMap.find(id);
 
-    if(el != PosetsMap.end()){
+    if (el != PosetsMap.end()) {
         PosetsMap.erase(el);
     }
 }
 
-size_t poset_size(unsigned long id){
+size_t jnp1::poset_size(unsigned long id) {
     auto poset = getPoset(id);
-    if(!poset.has_value()) {
+    if (!poset.has_value()) {
         return 0;
     }
 
@@ -250,15 +261,15 @@ size_t poset_size(unsigned long id){
     return idxMap.size();
 }
 
-bool poset_insert(unsigned long id, char const *value){
+bool jnp1::poset_insert(unsigned long id, char const* value) {
     auto poset = getPoset(id);
 
-    if(!poset.has_value() || value == nullptr) {
+    if (!poset.has_value() || value == nullptr) {
         return false;
     }
 
-    if(isInPoset(poset.value(), value)) {
-       return false;
+    if (isInPoset(poset.value(), value)) {
+        return false;
     }
 
     addNode(poset.value(), value);
@@ -266,89 +277,76 @@ bool poset_insert(unsigned long id, char const *value){
     return true;
 }
 
-bool poset_remove(unsigned long id, char const* value) {
+bool jnp1::poset_remove(unsigned long id, char const* value) {
     auto poset = getPoset(id);
 
-    if(!poset.has_value()) {
+    if (!poset.has_value()) {
         return false;
     }
 
     return removeNode(poset.value(), value);
 }
 
-bool poset_add(unsigned long id, char const* value1, char const* value2) {
+bool jnp1::poset_add(unsigned long id, char const* value1, char const* value2) {
     auto poset = getPoset(id);
 
-    if(!poset.has_value()) {
+    if (!poset.has_value()) {
         return false;
     }
 
-    if(checkRelation(poset.value(), value1, value2) || checkRelation(poset.value(), value2, value1)) {
+    if (checkRelation(poset.value(), value1, value2) || checkRelation(poset.value(), value2, value1)) {
         return false;
     }
 
     return addRelation(poset.value(), value1, value2);
 }
 
-bool poset_test(unsigned long id, char const* value1, char const* value2) {
+bool jnp1::poset_test(unsigned long id, char const* value1, char const* value2) {
     auto poset = getPoset(id);
 
-    if(!poset.has_value()) {
+    if (!poset.has_value()) {
         return false;
     }
 
     return checkRelation(poset.value(), value1, value2);
 }
 
-bool poset_del(unsigned long id, char const* value1, char const* value2) {
+bool jnp1::poset_del(unsigned long id, char const* value1, char const* value2) {
     auto poset = getPoset(id);
 
-    if(!poset.has_value()) {
+    if (!poset.has_value()) {
         return false;
     }
 
-    if(!canDeleteRelation(poset.value(), value1, value2)) {
+    if (!checkRelation(poset.value(), value1, value2) || !canDeleteRelation(poset.value(), value1, value2)) {
         return false;
     }
-
 
     deleteRelation(poset.value(), value1, value2);
-
     return true;
 }
 
-void poset_clear(unsigned long id) {
+void jnp1::poset_clear(unsigned long id) {
     auto poset = getPoset(id);
 
-    if(!poset.has_value()) {
+    if (!poset.has_value()) {
         return;
     }
 
     clearPoset(poset.value());
 }
 
+/*int main () {
+    auto id = jnp1::poset_new();
+    jnp1::poset_insert(id, "a");
+    jnp1::poset_insert(id, "b");
+    jnp1::poset_insert(id, "c");
+    jnp1::poset_add(id, "a", "b");
+    jnp1::poset_add(id, "a", "b");
 
-int main() {
-    auto id = poset_new();
 
-    bool nulltest = poset_insert(id, nullptr);
-
-    bool a = poset_insert(id, "a");
-    bool b = poset_insert(id, "b");
-    bool c = poset_insert(id, "c");
-    poset_insert(id, "d");
-    poset_insert(id, "e");
-
-    poset_add(id, "a", "b");
-    poset_add(id, "b", "c");
-
-    bool res = poset_test(id, "a", "c");
-
-    bool res1 = poset_test(id, "a", "b");
-    bool del1 = poset_del(id, "a", "c");
-    bool del2 = poset_del(id, "a", "b");
-    bool res2 = poset_test(id, "a", "b");
-    std::cout << poset_size(id);
-
-    return 0;
-}
+    auto r1 = jnp1::poset_test(id, "a", "b");
+    auto d1 = jnp1::poset_del(id, "a", "b");
+    auto r2 = jnp1::poset_test(id, "a", "b");
+    auto d2 = jnp1::poset_del(id, "a", "b");
+}*/
