@@ -13,12 +13,21 @@ namespace {
     using PosetGraph = std::unordered_map<NodeIndex, Node>;
     using Poset = std::tuple<NodeIndex, IndexMap, PosetGraph>;
 
-    std::unordered_map<unsigned long, Poset> PosetsMap;
-    unsigned long PosetsIndexer = 0;
+    std::unordered_map<unsigned long, Poset>& PosetsMap() {
+        static std::unordered_map<unsigned long, Poset> PosetsMap;
+
+        return PosetsMap;
+    }
+
+    unsigned long& PosetsIndexer() {
+        static unsigned long PosetsIndexer = 0;
+
+        return PosetsIndexer;
+    }
 
     std::optional<std::reference_wrapper<Poset>> getPoset(unsigned long id) {
-        auto el = PosetsMap.find(id);
-        if (el == PosetsMap.end()) {
+        auto el = PosetsMap().find(id);
+        if (el == PosetsMap().end()) {
             return std::nullopt;
         }
 
@@ -241,18 +250,18 @@ unsigned long jnp1::poset_new() {
 
     Poset poset(0, indexMap, graph);
 
-    unsigned long index = PosetsIndexer;
-    PosetsIndexer++;
-    PosetsMap.insert({index, poset});
+    unsigned long index = PosetsIndexer();
+    PosetsIndexer() += 1;
+    PosetsMap().insert({index, poset});
 
     return index;
 }
 
 void jnp1::poset_delete(unsigned long id) {
-    auto el = PosetsMap.find(id);
+    auto el = PosetsMap().find(id);
 
-    if (el != PosetsMap.end()) {
-        PosetsMap.erase(el);
+    if (el != PosetsMap().end()) {
+        PosetsMap().erase(el);
     }
 }
 
@@ -340,18 +349,3 @@ void jnp1::poset_clear(unsigned long id) {
 
     clearPoset(poset.value());
 }
-
-/*int main () {
-    auto id = jnp1::poset_new();
-    jnp1::poset_insert(id, "a");
-    jnp1::poset_insert(id, "b");
-    jnp1::poset_insert(id, "c");
-    jnp1::poset_add(id, "a", "b");
-    jnp1::poset_add(id, "a", "b");
-
-
-    auto r1 = jnp1::poset_test(id, "a", "b");
-    auto d1 = jnp1::poset_del(id, "a", "b");
-    auto r2 = jnp1::poset_test(id, "a", "b");
-    auto d2 = jnp1::poset_del(id, "a", "b");
-}*/
