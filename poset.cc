@@ -162,6 +162,49 @@ namespace {
 
         return true;
     }
+
+    bool canDeleteRelation(Poset& poset, char const* value1, char const* value2) {
+        auto index1 = getNodeIndex(poset, value1);
+        auto index2 = getNodeIndex(poset, value2);
+
+        if(!index1.has_value() || !index2.has_value()) {
+            return false;
+        }
+
+        auto& graph = getPosetGraph(poset);
+        auto& relations = getRelations(getPosetNode(graph, index1.value()));
+
+        for(auto i : relations) {
+            if(i != index2.value()) {
+                auto& set = getRelations(getPosetNode(graph, i));
+
+                auto it = set.find(index2.value());
+
+                if(it != set.end()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void deleteRelation(Poset& poset, char const* value1, char const* value2) {
+        auto index1 = getNodeIndex(poset, value1);
+        auto index2 = getNodeIndex(poset, value2);
+
+        if(!index1.has_value() || !index2.has_value()) {
+            return;
+        }
+
+        auto& graph = getPosetGraph(poset);
+
+        auto& rel = getRelations(getPosetNode(graph, index1.value()));
+        auto& revRel = getReverseRelations(getPosetNode(graph, index2.value()));
+
+        rel.erase(index2.value());
+        revRel.erase(index1.value());
+    }
 }
 
 unsigned long poset_new() {
@@ -249,6 +292,23 @@ bool poset_test(unsigned long id, char const* value1, char const* value2) {
     return checkRelation(*poset, value1, value2);
 }
 
+bool poset_del(unsigned long id, char const* value1, char const* value2) {
+    auto* poset = getPoset(id);
+
+    if(poset == nullptr) {
+        return false;
+    }
+
+    if(!canDeleteRelation(*poset, value1, value2)) {
+        return false;
+    }
+
+
+    deleteRelation(*poset, value1, value2);
+
+    return true;
+}
+
 void poset_clear(unsigned long id) {
     auto* poset = getPoset(id);
 
@@ -273,6 +333,10 @@ int main() {
 
     bool res = poset_test(id, "a", "c");
 
+    bool res1 = poset_test(id, "a", "b");
+    bool del1 = poset_del(id, "a", "c");
+    bool del2 = poset_del(id, "a", "b");
+    bool res2 = poset_test(id, "a", "b");
     std::cout << poset_size(id);
 
     return 0;
