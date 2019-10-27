@@ -224,7 +224,9 @@ namespace {
 
         auto& index = std::get<NodeIndex>(poset);
 
-        Node node;
+        Edges rel;
+        Edges revRel;
+        Node node(rel, revRel);
 
         indexMap.insert({value, index});
         graph.insert({index, node});
@@ -234,7 +236,10 @@ namespace {
 }
 
 unsigned long jnp1::poset_new() {
-    Poset poset;
+    IndexMap indexMap;
+    PosetGraph graph;
+
+    Poset poset(0, indexMap, graph);
 
     unsigned long index = PosetsIndexer;
     PosetsIndexer++;
