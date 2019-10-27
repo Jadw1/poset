@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <functional>
 
 namespace {
     using NodeIndex = unsigned long;
@@ -15,13 +16,13 @@ namespace {
     std::unordered_map<unsigned long, Poset> PosetsMap;
     unsigned long PosetsIndexer = 0;
 
-    Poset* getPoset(unsigned long id) {
+    std::optional<std::reference_wrapper<Poset>> getPoset(unsigned long id) {
         auto el = PosetsMap.find(id);
         if(el == PosetsMap.end()) {
-            return nullptr;
+            return std::nullopt;
         }
 
-        return &(el->second);
+        return std::ref(el->second);
     }
 
     IndexMap& getIndexMap(Poset& poset) {
@@ -226,23 +227,25 @@ void poset_delete(unsigned long id){
 }
 
 size_t poset_size(unsigned long id){
-    Poset* poset = getPoset(id);
-    if(poset == nullptr) {
+    auto poset = getPoset(id);
+    if(!poset.has_value()) {
         return 0;
     }
 
-    IndexMap& idxMap = getIndexMap(*poset);
+    IndexMap& idxMap = getIndexMap(poset.value());
     return idxMap.size();
 }
 
 bool poset_insert(unsigned long id, char const *value){
-    Poset* poset = getPoset(id);
+    auto poset = getPoset(id);
 
-    if(poset != nullptr && !isInPoset(*poset, value)) {
-        IndexMap& idxMap = getIndexMap(*poset);
-        PosetGraph& graph = getPosetGraph(*poset);
+    if(poset.has_value() && !isInPoset(poset.value(), value)) {
+        IndexMap& idxMap = getIndexMap(poset.value());
+        PosetGraph& graph = getPosetGraph(poset.value());
 
-        auto& index = std::get<NodeIndex>(*poset);
+
+        Poset& p = poset.value();
+        auto& index = std::get<NodeIndex>(p);
         Edges rel;
         Edges revRel;
         Node node(rel, revRel);
@@ -259,69 +262,70 @@ bool poset_insert(unsigned long id, char const *value){
 }
 
 bool poset_remove(unsigned long id, char const* value) {
-    auto* poset = getPoset(id);
+    auto poset = getPoset(id);
 
-    if(poset == nullptr) {
+    if(!poset.has_value()) {
         return false;
     }
 
-    return removeNode(*poset, value);
+    return removeNode(poset.value(), value);
 }
 
 bool poset_add(unsigned long id, char const* value1, char const* value2) {
-    Poset* poset = getPoset(id);
+    auto poset = getPoset(id);
 
-    if(poset == nullptr) {
+    if(!poset.has_value()) {
         return false;
     }
 
-    if(checkRelation(*poset, value1, value2) || checkRelation(*poset, value2, value1)) {
+    if(checkRelation(poset.value(), value1, value2) || checkRelation(poset.value(), value2, value1)) {
         return false;
     }
 
-    return addRelation(*poset, value1, value2);
+    return addRelation(poset.value(), value1, value2);
 }
 
 bool poset_test(unsigned long id, char const* value1, char const* value2) {
-    auto* poset = getPoset(id);
+    auto poset = getPoset(id);
 
-    if(poset == nullptr) {
+    if(!poset.has_value()) {
         return false;
     }
 
-    return checkRelation(*poset, value1, value2);
+    return checkRelation(poset.value(), value1, value2);
 }
 
 bool poset_del(unsigned long id, char const* value1, char const* value2) {
-    auto* poset = getPoset(id);
+    auto poset = getPoset(id);
 
-    if(poset == nullptr) {
+    if(!poset.has_value()) {
         return false;
     }
 
-    if(!canDeleteRelation(*poset, value1, value2)) {
+    if(!canDeleteRelation(poset.value(), value1, value2)) {
         return false;
     }
 
 
-    deleteRelation(*poset, value1, value2);
+    deleteRelation(poset.value(), value1, value2);
 
     return true;
 }
 
 void poset_clear(unsigned long id) {
-    auto* poset = getPoset(id);
+    auto poset = getPoset(id);
 
-    if(poset == nullptr) {
+    if(!poset.has_value()) {
         return;
     }
 
-    clearPoset(*poset);
+    clearPoset(poset.value());
 }
 
 
 int main() {
     auto id = poset_new();
+
     bool a = poset_insert(id, "a");
     bool b = poset_insert(id, "b");
     bool c = poset_insert(id, "c");
