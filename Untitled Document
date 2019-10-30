@@ -1,18 +1,13 @@
 #ifndef POSET_POSET_H
 #define POSET_POSET_H
 
-#include <stdbool.h>
+// c++
+#include <cstddef>
+// c
 #include <stddef.h>
-
-#ifdef  NDEBUG
-static int const debug = false;
-#else
-static  int const debug = true;
-#endif
+#include <stdbool.h>
 
 #ifdef __cplusplus
-#include <cstddef>
-
 namespace jnp1 {
     extern "C" {
 #endif
@@ -38,10 +33,10 @@ namespace jnp1 {
 #ifdef __cplusplus
     }
 }
-
-
-
+#else
+#include <stdbool.h>
 
 
 #endif  //extern "C"
 #endif //POSET_POSET_H
+

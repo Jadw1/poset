@@ -1,7 +1,7 @@
 #include "poset.h"
 
 #ifdef NDEBUG
-  #undef NDEBUG
+  //#undef NDEBUG
 #endif
 
 #include <assert.h>
@@ -49,10 +49,10 @@ int main() {
   assert(poset_insert(p1, "F"));
   assert(poset_insert(p1, "G"));
   assert(poset_add(p1, "E", "F"));
-  //assert(!poset_add(p1, "E", "F"));
-  //assert(!poset_add(p1, "F", "E"));
-  //assert(poset_test(p1, "E", "F"));
-  //assert(!poset_test(p1, "F", "E"));
+  assert(!poset_add(p1, "E", "F"));
+  assert(!poset_add(p1, "F", "E"));
+  assert(poset_test(p1, "E", "F"));
+  assert(!poset_test(p1, "F", "E"));
   assert(poset_add(p1, "F", "G"));
   assert(poset_test(p1, "E", "G"));
   assert(!poset_del(p1, "E", "G"));
