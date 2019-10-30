@@ -1,13 +1,15 @@
 #ifndef POSET_POSET_H
 #define POSET_POSET_H
 
-#include <stddef.h>
-#include <stdbool.h>
-
 
 #ifdef __cplusplus
+    #include <cstddef>
 namespace jnp1 {
-    extern "C" {
+extern "C" {
+
+#else
+    #include <stddef.h>
+    #include <stdbool.h>
 #endif
 
     unsigned long poset_new();
