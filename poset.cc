@@ -4,8 +4,23 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <iostream>
+#include <string>
 
 namespace {
+
+#ifdef NDEBUG
+    static const bool Debug { false };
+#else
+    static const bool Debug { true };
+#endif
+
+#define PRINT_DEBUG(x) do {\
+    if(Debug) {\
+        std::cerr << x << std::endl;\
+    }\
+} while(0)
+
     using NodeIndex = unsigned long;
     using IndexMap = std::unordered_map<std::string, NodeIndex>;
     using Edges = std::unordered_set<NodeIndex>;
@@ -76,6 +91,13 @@ namespace {
         return index.has_value();
     }
 
+    bool isPairInPoset(Poset& poset, char const* value1, char const* value2) {
+        auto index1 = getNodeIndex(poset, value1);
+        auto index2 = getNodeIndex(poset, value2);
+
+        return index1.has_value() && index2.has_value();
+    }
+
     std::optional<NodeIndex> removeNodeFromIndexMap(IndexMap& map, char const* value) {
         auto it = map.find(value);
         if (it == map.end()) {
@@ -121,10 +143,7 @@ namespace {
         auto index1 = getNodeIndex(poset, value1);
         auto index2 = getNodeIndex(poset, value2);
 
-        if (!index1.has_value() || !index2.has_value()) {
-            return false;
-        }
-        if (index1.value() == index2.value()) {
+        if(index1.value() == index2.value()) {
             return true;
         }
 
@@ -159,12 +178,7 @@ namespace {
         auto index1 = getNodeIndex(poset, value1);
         auto index2 = getNodeIndex(poset, value2);
 
-        if (!index1.has_value() || !index2.has_value()) {
-            return false;
-        }
-
         auto& graph = getPosetGraph(poset);
-
         auto& extendForwardSet = getRelations(getPosetNode(graph, index2.value()));
         auto& extendBackwardSet = getReverseRelations(getPosetNode(graph, index1.value()));
 
@@ -245,6 +259,8 @@ namespace {
 }
 
 unsigned long jnp1::poset_new() {
+    PRINT_DEBUG("poset_new()");
+
     IndexMap indexMap;
     PosetGraph graph;
 
@@ -254,98 +270,204 @@ unsigned long jnp1::poset_new() {
     PosetsIndexer() += 1;
     PosetsMap().insert({index, poset});
 
+    PRINT_DEBUG("poset_new: poset " + std::to_string(index) + " created");
     return index;
 }
 
 void jnp1::poset_delete(unsigned long id) {
+    PRINT_DEBUG("poset_delete(" + std::to_string(id) + ")");
+
     auto el = PosetsMap().find(id);
 
     if (el != PosetsMap().end()) {
         PosetsMap().erase(el);
+
+        PRINT_DEBUG("poset_delete: poset " + std::to_string(id) + " deleted");
+    }
+    else {
+        PRINT_DEBUG("poset_delete: poset " + std::to_string(id) + " does not exist");
     }
 }
 
 size_t jnp1::poset_size(unsigned long id) {
+    PRINT_DEBUG("poset_size(" + std::to_string(id) + ")");
+
     auto poset = getPoset(id);
     if (!poset.has_value()) {
+
+        PRINT_DEBUG("poset_size: poset " + std::to_string(id) + " does not exist");
         return 0;
     }
 
     IndexMap& idxMap = getIndexMap(poset.value());
-    return idxMap.size();
+    size_t size = idxMap.size();
+
+    PRINT_DEBUG("poset_size: poset " + std::to_string(id) + " contains " + std::to_string(size) + " element(s)");
+    return size;
 }
 
 bool jnp1::poset_insert(unsigned long id, char const* value) {
+    std::string commandParam = (value != nullptr) ? value : "NULL";
+    PRINT_DEBUG("poset_insert(" + std::to_string(id) + ", \"" + commandParam + "\")");
+
     auto poset = getPoset(id);
 
-    if (!poset.has_value() || value == nullptr) {
+    if (!poset.has_value()) {
+        PRINT_DEBUG("poset_insert: poset " + std::to_string(id) + " does not exist");
+        return false;
+    }
+    else if(value == nullptr) {
+        PRINT_DEBUG("poset_insert: invalid value (" + commandParam  + ")");
         return false;
     }
 
     if (isInPoset(poset.value(), value)) {
+        PRINT_DEBUG("poset_insert: poset " + std::to_string(id) + ", element \"" + value + "\" already exists");
         return false;
     }
 
     addNode(poset.value(), value);
 
+    PRINT_DEBUG("poset_insert: poset " + std::to_string(id) + ", element \"" + value + "\" inserted");
     return true;
 }
 
 bool jnp1::poset_remove(unsigned long id, char const* value) {
+    std::string commandParam = (value != nullptr) ? value : "NULL";
+    PRINT_DEBUG("poset_remove(\"" + std::to_string(id) + ", " + value + "\")");
+
     auto poset = getPoset(id);
 
     if (!poset.has_value()) {
+        PRINT_DEBUG("poset_remove: poset " + std::to_string(id) + " does not exist");
         return false;
     }
 
-    return removeNode(poset.value(), value);
+    bool result = removeNode(poset.value(), value);
+    if(result) {
+        PRINT_DEBUG("poset_remove: poset " + std::to_string(id) + ", element \"" + value + "\" removed");
+    }
+    else {
+        PRINT_DEBUG("poset_remove: poset " + std::to_string(id) + ", element \"" + value + "\" does not exist");
+    }
+
+    return result;
 }
 
 bool jnp1::poset_add(unsigned long id, char const* value1, char const* value2) {
+    std::string commandParam1 = (value1 != nullptr) ? value1 : "NULL";
+    std::string commandParam2 = (value2 != nullptr) ? value2 : "NULL";
+    PRINT_DEBUG("poset_add(" + std::to_string(id) + ", " + commandParam1 + ", " + commandParam2 + ")");
+
     auto poset = getPoset(id);
 
     if (!poset.has_value()) {
+        PRINT_DEBUG("poset_add: poset " + std::to_string(id) + " does not exist");
+        return false;
+    }
+    else if(value1 == nullptr) {
+        PRINT_DEBUG("poset_add: invalid value1 (" + commandParam1  + ")");
+        return false;
+    }
+    else if(value2 == nullptr) {
+        PRINT_DEBUG("poset_add: invalid value2 (" + commandParam2  + ")");
+        return false;
+    }
+    else if(!isPairInPoset(poset.value(), value1, value2)) {
+        PRINT_DEBUG("poset_add: poset " + std::to_string(id) + ", elements \"" + value1 + "\" or \""
+        + value2 + "\" does not exist");
         return false;
     }
 
     if (checkRelation(poset.value(), value1, value2) || checkRelation(poset.value(), value2, value1)) {
+        PRINT_DEBUG("poset_add: poset " + std::to_string(id) + ", relation (\"" + value1 + "\", \"" + value2 + "\") cannot be added");
         return false;
     }
 
+    PRINT_DEBUG("poset_add: poset " + std::to_string(id) + ", relation (\"" + value1 + "\", \"" + value2 + "\") added");
     return addRelation(poset.value(), value1, value2);
 }
 
 bool jnp1::poset_test(unsigned long id, char const* value1, char const* value2) {
+    std::string commandParam1 = (value1 != nullptr) ? value1 : "NULL";
+    std::string commandParam2 = (value2 != nullptr) ? value2 : "NULL";
+    PRINT_DEBUG("poset_test(" + std::to_string(id) + ", " + commandParam1 + ", " + commandParam2 + ")");
+
     auto poset = getPoset(id);
 
     if (!poset.has_value()) {
+        PRINT_DEBUG("poset_test: poset " + std::to_string(id) + " does not exist");
+        return false;
+    }
+    else if(value1 == nullptr) {
+        PRINT_DEBUG("poset_test: invalid value1 (" + commandParam1  + ")");
+        return false;
+    }
+    else if(value2 == nullptr) {
+        PRINT_DEBUG("poset_test: invalid value2 (" + commandParam2  + ")");
+        return false;
+    }
+    else if(!isPairInPoset(poset.value(), value1, value2)) {
+        PRINT_DEBUG("poset_test: poset " + std::to_string(id) + ", elements \"" + value1 + "\" or \""
+        + value2 + "\" does not exist");
         return false;
     }
 
-    return checkRelation(poset.value(), value1, value2);
+    bool result = checkRelation(poset.value(), value1, value2);
+    if(result) {
+        PRINT_DEBUG("poset_test: poset " + std::to_string(id) + ", relation (\"" + value1 + "\", \"" + value2 + "\") exists");
+    }
+    else {
+        PRINT_DEBUG("poset_test: poset " + std::to_string(id) + ", relation (\"" + value1 + "\", \"" + value2 + "\") does not exists");
+    }
+    return result;
 }
 
 bool jnp1::poset_del(unsigned long id, char const* value1, char const* value2) {
+    std::string commandParam1 = (value1 != nullptr) ? value1 : "NULL";
+    std::string commandParam2 = (value2 != nullptr) ? value2 : "NULL";
+    PRINT_DEBUG("poset_del(" + std::to_string(id) + ", " + commandParam1 + ", " + commandParam2 + ")");
+
     auto poset = getPoset(id);
 
     if (!poset.has_value()) {
+        PRINT_DEBUG("poset_del: poset " + std::to_string(id) + " does not exist");
+        return false;
+    }
+    else if(value1 == nullptr) {
+        PRINT_DEBUG("poset_del: invalid value1 (" + commandParam1  + ")");
+        return false;
+    }
+    else if(value2 == nullptr) {
+        PRINT_DEBUG("poset_del: invalid value2 (" + commandParam2  + ")");
+        return false;
+    }
+    else if(!isPairInPoset(poset.value(), value1, value2)) {
+        PRINT_DEBUG("poset_del: poset " + std::to_string(id) + ", elements \"" + value1 + "\" or \""
+        + value2 + "\" does not exist");
         return false;
     }
 
     if (!checkRelation(poset.value(), value1, value2) || !canDeleteRelation(poset.value(), value1, value2)) {
+        PRINT_DEBUG("poset_del: poset " + std::to_string(id) + ", elements \"" + value1 + "\" or \""
+                    + value2 + "\" cannot be deleted");
         return false;
     }
 
     deleteRelation(poset.value(), value1, value2);
+    PRINT_DEBUG("poset_del: poset " + std::to_string(id) + ", relation (\"" + value1 + "\", \"" + value2 + "\") deleted");
     return true;
 }
 
 void jnp1::poset_clear(unsigned long id) {
+    PRINT_DEBUG("poset_clear(" + std::to_string(id) + ")");
     auto poset = getPoset(id);
 
     if (!poset.has_value()) {
+        PRINT_DEBUG("poset_clear: poset " + std::to_string(id) + " does not exist");
         return;
     }
 
     clearPoset(poset.value());
+    PRINT_DEBUG("poset_clear: poset " + std::to_string(id) + " cleared");
 }
