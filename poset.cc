@@ -38,10 +38,11 @@ namespace {
         return PosetsMap;
     }
 
-    unsigned long& PosetsIndexer() {
+    unsigned long PosetsIndexer() {
         static unsigned long PosetsIndexer = 0;
 
-        return PosetsIndexer;
+        PosetsIndexer++;
+        return PosetsIndexer - 1;
     }
 
     std::optional<std::reference_wrapper<Poset>> getPoset(unsigned long id) {
@@ -271,7 +272,6 @@ unsigned long jnp1::poset_new() {
     Poset poset(0, indexMap, graph);
 
     unsigned long index = PosetsIndexer();
-    PosetsIndexer() += 1;
     PosetsMap().insert({index, poset});
 
     PRINT_DEBUG("poset_new: poset " + std::to_string(index) + " created");
