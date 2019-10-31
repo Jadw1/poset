@@ -347,6 +347,10 @@ bool jnp1::poset_remove(unsigned long id, char const* value) {
         PRINT_DEBUG("poset_remove: poset " + std::to_string(id) + " does not exist");
         return false;
     }
+    if (value == nullptr) {
+        PRINT_DEBUG("poset_remove: invalid value (NULL)");
+        return false;
+    }
 
     bool result = removeNode(poset.value(), value);
     if (result) {
