@@ -3,13 +3,17 @@
 
 
 #ifdef __cplusplus
-    #include <cstddef>
+
+#include <cstddef>
+
 namespace jnp1 {
-extern "C" {
+    extern "C" {
 
 #else
-    #include <stddef.h>
-    #include <stdbool.h>
+
+#include <stddef.h>
+#include <stdbool.h>
+        
 #endif
 
     unsigned long poset_new();
