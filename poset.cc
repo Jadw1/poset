@@ -14,13 +14,13 @@ namespace {
     }
 
 #ifdef NDEBUG
-    static const bool Debug{false};
+    static bool const debug = false;
 #else
-    static const bool Debug{true};
+    static bool const debug = true;
 #endif
 
 #define PRINT_DEBUG(x) do {\
-    if(Debug) {\
+    if(debug) {\
         DebugStream() << x << std::endl;\
     }\
 } while(0)
