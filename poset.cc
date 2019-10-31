@@ -9,6 +9,11 @@
 
 namespace {
 
+    std::ostream& DebugStream() {
+        static std::ios_base::Init init;
+        return std::cerr;
+    }
+
 #ifdef NDEBUG
     static const bool Debug { false };
 #else
@@ -17,7 +22,7 @@ namespace {
 
 #define PRINT_DEBUG(x) do {\
     if(Debug) {\
-        std::cerr << x << std::endl;\
+        DebugStream() << x << std::endl;\
     }\
 } while(0)
 
